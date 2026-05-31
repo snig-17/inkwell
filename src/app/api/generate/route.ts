@@ -1,15 +1,19 @@
-// Server-side proxy to the Anthropic API. The user's key lives in .env.local and
-// never reaches the browser (the web mapping of the SPEC's Keychain + direct
-// call). Given a plain-language request — and, when re-prompting, the page's
-// current HTML — Claude returns a single self-contained interactive HTML
-// document that persists its state through the injected `window.inkwell` bridge.
+// Server-side proxy to the Gemini API (via its OpenAI-compatible endpoint). The
+// user's key lives in .env.local and never reaches the browser (the web mapping
+// of the SPEC's Keychain + direct call). Given a plain-language request — and,
+// when re-prompting, the page's current HTML — the model returns a single
+// self-contained interactive HTML document that persists its state through the
+// injected `window.inkwell` bridge.
 
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 
-const MODEL = "claude-sonnet-4-6";
+// gemini-2.5-flash is the fastest, free-tier Flash model on the Gemini Developer
+// API (confirmed free of charge for text in/out on ai.google.dev pricing).
+const MODEL = "gemini-2.5-flash";
+const BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
 const MAX_TOKENS = 16000;
 
-// The generation contract. Static, so it's cached across requests.
+// The generation contract.
 const SYSTEM_PROMPT = `You build a single page for "inkwell", an AI notebook. You are given a plain-language request and must return ONE self-contained, interactive HTML document that renders that page.
 
 OUTPUT
@@ -70,10 +74,10 @@ function extractTitle(html: string, fallback: string): string {
 }
 
 export async function POST(request: Request) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return Response.json(
-      { error: "Missing ANTHROPIC_API_KEY. Add it to .env.local." },
+      { error: "Missing GEMINI_API_KEY. Add it to .env.local." },
       { status: 500 },
     );
   }
@@ -97,26 +101,19 @@ export async function POST(request: Request) {
     ? MODIFY_PREFIX + userRequest + MODIFY_RULES + currentHtml
     : userRequest;
 
-  const client = new Anthropic({ apiKey });
+  const client = new OpenAI({ apiKey, baseURL: BASE_URL });
 
   try {
-    const message = await client.messages.create({
+    const completion = await client.chat.completions.create({
       model: MODEL,
       max_tokens: MAX_TOKENS,
-      system: [
-        {
-          type: "text",
-          text: SYSTEM_PROMPT,
-          cache_control: { type: "ephemeral" },
-        },
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: userMessage },
       ],
-      messages: [{ role: "user", content: userMessage }],
     });
 
-    const text = message.content
-      .filter((block): block is Anthropic.TextBlock => block.type === "text")
-      .map((block) => block.text)
-      .join("");
+    const text = completion.choices[0]?.message?.content ?? "";
 
     const html = stripFences(text);
     // Require an actual document, not just any tag-like token — otherwise a

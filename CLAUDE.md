@@ -16,6 +16,9 @@ a Next.js Route Handler; local files/CloudKit → IndexedDB; EventKit → deferr
 
 - Next.js 16 (App Router) · React 19 · TypeScript
 - Tailwind CSS v4 · shadcn/ui
+- Page generation uses **Google Gemini** (model `gemini-2.5-flash`) via its OpenAI-compatible
+  endpoint with the `openai` SDK — not Anthropic. The key is read server-side from
+  `GEMINI_API_KEY` in `.env.local` and proxied through `src/app/api/generate/route.ts`.
 
 ## Commands
 
