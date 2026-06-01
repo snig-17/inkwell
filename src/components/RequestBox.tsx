@@ -45,7 +45,7 @@ export function RequestBox({
           }
         }}
         rows={3}
-        className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+        className="w-full resize-none rounded-xl border border-border bg-muted/50 px-3.5 py-2.5 text-sm outline-none transition-colors focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
       />
       <div className="flex items-center justify-end gap-3">
         <span className="text-xs text-muted-foreground">⌘↵ to send</span>

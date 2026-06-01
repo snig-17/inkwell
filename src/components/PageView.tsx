@@ -129,7 +129,7 @@ export function PageView({
         sandbox="allow-scripts"
         referrerPolicy="no-referrer"
         title={page.title}
-        className="h-full w-full border-0 bg-white"
+        className="h-full w-full border-0 bg-card"
       />
       {busy && (
         // Transparent click-shield: prevents edits to the frame mid-regeneration.

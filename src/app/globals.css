@@ -7,8 +7,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -81,6 +81,11 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* layered paper shadows (ported from Claude Design) */
+  --shadow-paper: 0 1px 2px oklch(0 0 0 / 0.04), 0 8px 24px oklch(0 0 0 / 0.05), 0 24px 60px oklch(0 0 0 / 0.04);
+  --shadow-card: 0 1px 2px oklch(0 0 0 / 0.04), 0 4px 14px oklch(0 0 0 / 0.06);
+  --shadow-pop: 0 1px 2px oklch(0 0 0 / 0.06), 0 8px 28px oklch(0 0 0 / 0.12);
 }
 
 .dark {
@@ -109,12 +114,16 @@
   --chart-5: oklch(0.269 0 0);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.922 0 0);
+  --sidebar-primary-foreground: oklch(0.205 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  --shadow-paper: 0 1px 2px #0007, 0 10px 30px #0008, 0 30px 70px #0007;
+  --shadow-card: 0 1px 3px #0006, 0 6px 18px #0007;
+  --shadow-pop: 0 2px 6px #0008, 0 12px 34px #0009;
 }
 
 @layer base {
@@ -127,4 +136,97 @@
   html {
     @apply font-sans;
   }
+}
+
+/* ============================================================
+   inkwell chrome — ported from Claude Design
+   (visual system + paper spine; macOS-native, neutral-grayscale)
+   ============================================================ */
+
+/* translucent vibrancy bars (titlebar + sidebar) */
+.ink-titlebar {
+  background: color-mix(in oklab, var(--background) 78%, transparent);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+.ink-sidebar {
+  background: color-mix(in oklab, var(--sidebar) 82%, transparent);
+  backdrop-filter: saturate(160%) blur(16px);
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
+}
+
+/* the canvas the paper floats on — soft top-center halo */
+.ink-canvas {
+  background:
+    radial-gradient(circle at 50% -8%, color-mix(in oklab, var(--primary) 5%, transparent), transparent 46%),
+    var(--background);
+}
+
+/* the paper "spine": a real page, not a rounded card (hairline radius + layered shadow) */
+.ink-spine {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: var(--shadow-paper);
+}
+
+/* the notebook spine accent — thin gradient rule down the page's left edge */
+.ink-spine-edge {
+  position: absolute;
+  left: 0;
+  top: 28px;
+  bottom: 28px;
+  width: 3px;
+  border-radius: 3px;
+  background: linear-gradient(var(--primary), var(--muted-foreground));
+  opacity: 0.16;
+}
+
+/* editorial header type */
+.ink-kicker {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.ink-title {
+  font-size: 38px;
+  font-weight: 680;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--foreground);
+}
+
+/* AI status pulse dot (titlebar) */
+.ink-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: ink-pulse 2.6s infinite;
+}
+@keyframes ink-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 30%, transparent); }
+  70% { box-shadow: 0 0 0 7px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+/* faux-macOS traffic lights */
+.ink-traffic i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+.ink-traffic .r { background: #ff5f57; }
+.ink-traffic .y { background: #febc2e; }
+.ink-traffic .g { background: #28c840; }
+
+/* slim, paper-matched scrollbar on the canvas */
+.ink-canvas::-webkit-scrollbar { width: 11px; }
+.ink-canvas::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--foreground) 16%, transparent);
+  border-radius: 99px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+.ink-canvas::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--foreground) 26%, transparent);
+  background-clip: padding-box;
 }
